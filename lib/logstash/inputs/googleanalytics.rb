@@ -2,7 +2,6 @@
 require "logstash/inputs/base"
 require "logstash/namespace"
 require "stud/interval"
-require "socket" # for Socket.gethostname
 
 # Generate a repeating message.
 #
