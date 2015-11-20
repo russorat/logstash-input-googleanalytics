@@ -1,2 +1,2 @@
-# logstash-input-example
-Example input plugin. This should help bootstrap your effort to write your own input plugin!
+# logstash-input-googleanalytics
+Use this input to query data from Google Analytics into Logstash

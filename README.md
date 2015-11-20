@@ -1,11 +1,16 @@
 # Logstash Plugin
 
-[![Build
-Status](http://build-eu-00.elastic.co/view/LS%20Plugins/view/LS%20Inputs/job/logstash-plugin-input-example-unit/badge/icon)](http://build-eu-00.elastic.co/view/LS%20Plugins/view/LS%20Inputs/job/logstash-plugin-input-example-unit/)
-
 This is a plugin for [Logstash](https://github.com/elastic/logstash).
 
 It is fully free and fully open source. The license is Apache 2.0, meaning you are pretty much free to use it however you want in whatever way.
+
+## SSL Errors
+
+Sometimes you will get an SSL Error. It can easily be solved by following the advice [here](https://github.com/jruby/jruby/issues/1055#issuecomment-38209934) and adding a new cacert.pem to your environment.
+```
+Error: certificate verify failed
+Exception: Faraday::SSLError
+```
 
 ## Documentation
 
@@ -52,7 +57,7 @@ bundle exec rspec
 
 - Edit Logstash `Gemfile` and add the local plugin path, for example:
 ```ruby
-gem "logstash-filter-awesome", :path => "/your/local/logstash-filter-awesome"
+gem "logstash-input-googleanalytics", :path => "/your/local/logstash-input-googleanalytics"
 ```
 - Install plugin
 ```sh
