@@ -23,4 +23,7 @@ Gem::Specification.new do |s|
   s.add_runtime_dependency 'stud', '>= 0.0.22'
   s.add_runtime_dependency 'google-api-client', "~> 0.7.1"
   s.add_development_dependency 'logstash-devutils', '>= 0.0.16'
+  s.add_development_dependency 'vcr'
+  s.add_development_dependency 'webmock'
+  s.add_development_dependency 'json'
 end

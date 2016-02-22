@@ -207,6 +207,9 @@ class LogStash::Inputs::GoogleAnalytics < LogStash::Inputs::Base
       :application_name => 'Google Analytics Logstash Input',
       :application_version => '1.0.0')
 
+    puts @key_file_path
+    puts @key_secret
+    puts @service_account_email
     # Load our credentials for the service account
     key = Google::APIClient::KeyUtils.load_from_pkcs12(@key_file_path, @key_secret)
     client.authorization = Signet::OAuth2::Client.new(
