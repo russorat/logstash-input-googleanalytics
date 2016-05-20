@@ -17,6 +17,8 @@ class LogStash::Inputs::GoogleAnalytics < LogStash::Inputs::Base
   # https://developers.google.com/analytics/devguides/reporting/core/v3/reference#q_details
   # Any changes from the format described above have been noted.
 
+  # Type for logstash filtering
+  config :type, :validate => :string, :default => 'googleanalytics'
   # A comma separated list of view (profile) ids, in the format 'ga:XXXX'
   # https://developers.google.com/analytics/devguides/reporting/core/v3/reference#ids
   config :ids, :validate => :string, :required => true
@@ -90,6 +92,7 @@ class LogStash::Inputs::GoogleAnalytics < LogStash::Inputs::Base
   # Interval to run the command. Value is in seconds. If no interval is given,
   # this plugin only fetches data once.
   config :interval, :validate => :number, :required => false
+
 
   public
   def register
