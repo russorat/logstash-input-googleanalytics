@@ -151,9 +151,13 @@ class LogStash::Inputs::GoogleAnalytics < LogStash::Inputs::Base
                   event['ga_date'] = Date.parse(@start_date)
                 end
               else
-                event['ga_date'] = Date.parse(event['ga_date'].to_s)
+                event['ga_date'] = Date.parse(event['ga_date'].to_i.to_s)
               end
+            else
+              # Convert YYYYMMdd to YYYY-MM-dd
+              event['ga_date'] = Date.parse(event['ga_date'].to_i.to_s)
             end
+            event['ga_date'] = event['ga_date'].to_s
             queue << event
           end
         end
