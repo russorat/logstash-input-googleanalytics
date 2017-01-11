@@ -17,6 +17,8 @@ class LogStash::Inputs::GoogleAnalytics < LogStash::Inputs::Base
   # https://developers.google.com/analytics/devguides/reporting/core/v3/reference#q_details
   # Any changes from the format described above have been noted.
 
+  # Type for logstash filtering
+  config :type, :validate => :string, :default => 'googleanalytics'
   # A comma separated list of view (profile) ids, in the format 'ga:XXXX'
   # https://developers.google.com/analytics/devguides/reporting/core/v3/reference#ids
   config :ids, :validate => :string, :required => true
@@ -91,6 +93,7 @@ class LogStash::Inputs::GoogleAnalytics < LogStash::Inputs::Base
   # this plugin only fetches data once.
   config :interval, :validate => :number, :required => false
 
+
   public
   def register
     require 'google/api_client'
@@ -148,9 +151,13 @@ class LogStash::Inputs::GoogleAnalytics < LogStash::Inputs::Base
                   event['ga_date'] = Date.parse(@start_date)
                 end
               else
-                event['ga_date'] = Date.parse(event['ga_date'].to_s)
+                event['ga_date'] = Date.parse(event['ga_date'].to_i.to_s)
               end
+            else
+              # Convert YYYYMMdd to YYYY-MM-dd
+              event['ga_date'] = Date.parse(event['ga_date'].to_i.to_s)
             end
+            event['ga_date'] = event['ga_date'].to_s
             queue << event
           end
         end
