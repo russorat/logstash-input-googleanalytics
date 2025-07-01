@@ -96,31 +96,35 @@ class LogStash::Inputs::GoogleAnalytics < LogStash::Inputs::Base
 
   public
   def register
-    require 'google/api_client'
+    require 'google/apis/analytics_v3'
+    require 'googleauth'
   end # def register
 
   def run(queue)
     # we can abort the loop if stop? becomes true
     while !stop?
       start = Time.now
-      client, analytics = get_service
+      analytics_service = get_service
       results_index = @start_index
       while !stop?
-        results = client.execute(
-          :api_method => analytics.data.ga.get,
-          :parameters => client_options(results_index))
+        results = analytics_service.get_ga_data(
+          @ids,
+          @start_date,
+          @end_date,
+          @metrics,
+          client_options(results_index))
 
-        if results.data.rows.first
-          query = results.data.query.to_hash
-          profile_info = results.data.profile_info.to_hash
-          column_headers = results.data.column_headers.map { |c|
+        if results.rows && results.rows.first
+          query = results.query.to_h
+          profile_info = results.profile_info.to_h
+          column_headers = results.column_headers.map { |c|
             c.name
           }
 
-          results.data.rows.each do |r|
+          results.rows.each do |r|
             event = LogStash::Event.new()
             decorate(event)
-            event['containsSampledData'] = results.data.containsSampledData
+            event['containsSampledData'] = results.contains_sampled_data
             event['query'] = query if @store_query
             event['profileInfo'] = profile_info if @store_profile
             column_headers.zip(r).each do |head,data|
@@ -161,9 +165,9 @@ class LogStash::Inputs::GoogleAnalytics < LogStash::Inputs::Base
             queue << event
           end
         end
-        nextLink = results.data.nextLink rescue nil
+        nextLink = results.next_link rescue nil
         if nextLink
-          start_index+=@max_results
+          results_index += @max_results
         else
           break
         end
@@ -192,12 +196,7 @@ class LogStash::Inputs::GoogleAnalytics < LogStash::Inputs::Base
   private
   def client_options(results_index)
     options = {
-      'ids' => @ids,
-      'start-date' => @start_date,
-      'end-date' => @end_date,
-      'metrics' => @metrics,
       'max-results' => @max_results,
-      'output' => 'json',
       'start-index' => results_index
     }
     options.merge!({ 'dimensions' => @dimensions }) if @dimensions
@@ -210,26 +209,39 @@ class LogStash::Inputs::GoogleAnalytics < LogStash::Inputs::Base
   end
 
   def get_service
-    client = Google::APIClient.new(
-      :application_name => 'Google Analytics Logstash Input',
-      :application_version => '1.0.0')
+    # Create a new Analytics service object
+    analytics_service = Google::Apis::AnalyticsV3::AnalyticsService.new
+    
+    # Set the application name
+    analytics_service.client_options.application_name = 'Google Analytics Logstash Input'
+    analytics_service.client_options.application_version = '1.0.0'
 
-    puts @key_file_path
-    puts @key_secret
-    puts @service_account_email
-    # Load our credentials for the service account
-    key = Google::APIClient::KeyUtils.load_from_pkcs12(@key_file_path, @key_secret)
-    client.authorization = Signet::OAuth2::Client.new(
-      :token_credential_uri => 'https://accounts.google.com/o/oauth2/token',
-      :audience => 'https://accounts.google.com/o/oauth2/token',
-      :scope => 'https://www.googleapis.com/auth/analytics.readonly',
-      :issuer => @service_account_email,
-      :signing_key => key)
+    # Load credentials from service account key file
+    scope = 'https://www.googleapis.com/auth/analytics.readonly'
+    
+    # Try to load from JSON key file first (modern approach)
+    if @key_file_path.end_with?('.json')
+      credentials = Google::Auth::ServiceAccountCredentials.make_creds(
+        json_key_io: File.open(@key_file_path),
+        scope: scope
+      )
+    else
+      # Fallback to P12 key file (legacy approach)
+      require 'google/api_client'
+      key = Google::APIClient::KeyUtils.load_from_pkcs12(@key_file_path, @key_secret)
+      credentials = Google::Auth::ServiceAccountCredentials.new(
+        token_credential_uri: 'https://accounts.google.com/o/oauth2/token',
+        audience: 'https://accounts.google.com/o/oauth2/token',
+        scope: scope,
+        issuer: @service_account_email,
+        signing_key: key
+      )
+    end
 
-    # Request a token for our service account
-    client.authorization.fetch_access_token!
-    analytics = client.discovered_api(@service_name, @api_version)
-    return client, analytics
+    # Set the credentials
+    analytics_service.authorization = credentials
+    
+    return analytics_service
   end
 
   private

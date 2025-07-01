@@ -18,10 +18,12 @@ Gem::Specification.new do |s|
   s.metadata = { "logstash_plugin" => "true", "logstash_group" => "input" }
 
   # Gem dependencies
-  s.add_runtime_dependency "logstash-core", ">= 2.0.0", "< 3.0.0"
+  s.add_runtime_dependency "logstash-core-plugin-api", ">= 2.0.0", "<= 2.99"
   s.add_runtime_dependency 'logstash-codec-plain'
   s.add_runtime_dependency 'stud', '>= 0.0.22'
-  s.add_runtime_dependency 'google-api-client', "~> 0.7.1"
+  s.add_runtime_dependency 'google-apis-analytics_v3', '~> 0.1'
+  s.add_runtime_dependency 'googleauth', '~> 1.0'
+  s.add_runtime_dependency 'google-api-client', '>= 0.7.1'
   s.add_development_dependency 'logstash-devutils', '>= 0.0.16'
   s.add_development_dependency 'vcr'
   s.add_development_dependency 'webmock'
